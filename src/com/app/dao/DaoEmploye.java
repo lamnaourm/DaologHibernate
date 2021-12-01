@@ -15,10 +15,13 @@ public class DaoEmploye implements IDao<Employe> {
 	
 	@Override
 	public List<Employe> getAll() {
+		Transaction t = null;
 		try {
 			logger.info("Debut de getAll");
 			Session s = HibernateUtils.getSessionFactory().getCurrentSession();
-			Transaction t = s.beginTransaction();
+			t = s.beginTransaction();
+			if(!t.isActive())
+				t=s.beginTransaction();
 			
 			List<Employe> emps = s.createNamedQuery("q1").list();
 			
@@ -30,6 +33,7 @@ public class DaoEmploye implements IDao<Employe> {
 			return emps;
 		}catch (Exception e) {
 			logger.error("Erreur : " + e.getMessage());
+			t.rollback();
 		}
 		
 		return null;
@@ -38,10 +42,11 @@ public class DaoEmploye implements IDao<Employe> {
 	@Override
 	public Employe getOne(int id) {
 		Employe emp = null;
+		Transaction t = null;
 		try {
 			logger.info("Debut de getOne");
 			Session s = HibernateUtils.getSessionFactory().getCurrentSession();
-			Transaction t = s.getTransaction();
+			t = s.beginTransaction();
 			
 			emp = s.get(Employe.class, id);
 			
@@ -51,38 +56,42 @@ public class DaoEmploye implements IDao<Employe> {
 			logger.info("Fin de getOne");
 		}catch (Exception e) {
 			logger.error("Erreur : " + e.getMessage());
+			t.rollback();
 		}
 		return emp;
 	}
 
 	@Override
 	public boolean save(Employe obj) {
+		Transaction t = null;
 		try {
 			logger.info("Debut de save");
 			Session s = HibernateUtils.getSessionFactory().getCurrentSession();
-			Transaction t = s.getTransaction();
+			t = s.beginTransaction();
 			
-			Employe ee = (Employe) s.save(obj);
+			Integer ee = (Integer) s.save(obj);
 
 			t.commit();
 			s.close();
 			
 			logger.info("Fin de getOne");
 			
-			if(ee==null)
+			if(ee!=null)
 				return true;
 		}catch (Exception e) {
 			logger.error("Erreur : " + e.getMessage());
+			t.rollback();
 		}
 		return false;
 	}
 
 	@Override
 	public boolean update(Employe obj) {
+		Transaction t = null;
 		try {
 			logger.info("Debut de update");
 			Session s = HibernateUtils.getSessionFactory().getCurrentSession();
-			Transaction t = s.getTransaction();
+			t = s.beginTransaction();
 			
 			s.update(obj);
 			
@@ -94,17 +103,19 @@ public class DaoEmploye implements IDao<Employe> {
 			return true;
 		}catch (Exception e) {
 			logger.error("Erreur : " + e.getMessage());
+			t.rollback();
 		}
 		return false;
 	}
 
 	@Override
 	public boolean delete(Employe obj) {
+		Transaction t = null;
 		try {
 			logger.info("Debut de delete");
 			
 			Session s = HibernateUtils.getSessionFactory().getCurrentSession();
-			Transaction t = s.getTransaction();
+			t = s.beginTransaction();
 			
 			s.delete(obj);
 			
@@ -115,6 +126,7 @@ public class DaoEmploye implements IDao<Employe> {
 			return true;
 		}catch (Exception e) {
 			logger.error("Erreur : " + e.getMessage());
+			t.rollback();
 		}
 		return false;
 	}
